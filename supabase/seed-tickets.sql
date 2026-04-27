@@ -1,140 +1,197 @@
--- CupRadar sample ticket listings
+-- CupRadar real-world World Cup 2026 host venue seed data
 -- Run this in Supabase SQL Editor.
--- These are placeholder marketplace listings for testing.
--- Replace prices, quantities, and match labels with your real verified inventory before going live.
+-- Important: these are NOT verified ticket inventory rows.
+-- They use real host-city/venue information and known tournament anchor dates.
+-- Keep status='coming_soon' until you have verified inventory or authorized resale rights.
+-- Change status to 'available' only for tickets you can legally sell.
 
 insert into tickets
 (match, venue, city, match_date, category, price, currency, available, status)
 values
 (
-  'Final - Winner SF1 vs Winner SF2',
-  'MetLife Stadium',
-  'New York/New Jersey, USA',
-  'July 19, 2026',
-  'Category 2',
-  450,
-  'USD',
-  8,
-  'available'
-),
-(
-  'Semi Final - Match 1',
-  'AT&T Stadium',
-  'Dallas, USA',
-  'July 14, 2026',
-  'Category 1',
-  320,
-  'USD',
-  12,
-  'available'
-),
-(
-  'Semi Final - Match 2',
-  'Mercedes-Benz Stadium',
-  'Atlanta, USA',
-  'July 15, 2026',
-  'Category 1',
-  320,
-  'USD',
-  10,
-  'available'
-),
-(
-  'Quarter Final - Los Angeles',
-  'SoFi Stadium',
-  'Los Angeles, USA',
-  'July 10, 2026',
-  'Category 2',
-  260,
-  'USD',
-  15,
-  'available'
-),
-(
-  'Quarter Final - Kansas City',
-  'Arrowhead Stadium',
-  'Kansas City, USA',
-  'July 11, 2026',
-  'Category 3',
-  210,
-  'USD',
-  18,
-  'available'
-),
-(
-  'Round of 16 - Miami',
-  'Hard Rock Stadium',
-  'Miami, USA',
-  'July 4, 2026',
-  'Category 2',
-  180,
-  'USD',
-  20,
-  'available'
-),
-(
-  'Round of 16 - Seattle',
-  'Lumen Field',
-  'Seattle, USA',
-  'July 3, 2026',
-  'Category 3',
-  150,
-  'USD',
-  24,
-  'available'
-),
-(
-  'Group Stage - Toronto',
-  'BMO Field',
-  'Toronto, Canada',
-  'June 12, 2026',
-  'Category 3',
-  120,
-  'USD',
-  30,
-  'available'
-),
-(
-  'Group Stage - Vancouver',
-  'BC Place',
-  'Vancouver, Canada',
-  'June 18, 2026',
-  'Category 3',
-  130,
-  'USD',
-  25,
-  'available'
-),
-(
-  'Group Stage - Mexico City',
+  'Opening Match - Mexico City',
   'Estadio Azteca',
   'Mexico City, Mexico',
   'June 11, 2026',
-  'Category 2',
-  160,
+  'Official inventory pending',
+  0,
   'USD',
-  20,
-  'available'
+  0,
+  'coming_soon'
 ),
 (
-  'Group Stage - Guadalajara',
+  'Opening Day Match - Guadalajara',
   'Estadio Akron',
   'Guadalajara, Mexico',
-  'June 15, 2026',
-  'Category 3',
-  110,
+  'June 11, 2026',
+  'Official inventory pending',
+  0,
   'USD',
-  28,
-  'available'
+  0,
+  'coming_soon'
 ),
 (
-  'Hospitality Package - Final',
+  'Opening Day Match - Toronto',
+  'BMO Field',
+  'Toronto, Canada',
+  'June 12, 2026',
+  'Official inventory pending',
+  0,
+  'USD',
+  0,
+  'coming_soon'
+),
+(
+  'Opening Day Match - Los Angeles',
+  'SoFi Stadium',
+  'Los Angeles, USA',
+  'June 12, 2026',
+  'Official inventory pending',
+  0,
+  'USD',
+  0,
+  'coming_soon'
+),
+(
+  'Host Venue Listing - Vancouver',
+  'BC Place',
+  'Vancouver, Canada',
+  'June-July 2026',
+  'Official inventory pending',
+  0,
+  'USD',
+  0,
+  'coming_soon'
+),
+(
+  'Host Venue Listing - Seattle',
+  'Lumen Field',
+  'Seattle, USA',
+  'June-July 2026',
+  'Official inventory pending',
+  0,
+  'USD',
+  0,
+  'coming_soon'
+),
+(
+  'Host Venue Listing - San Francisco Bay Area',
+  'Levi''s Stadium',
+  'San Francisco Bay Area, USA',
+  'June-July 2026',
+  'Official inventory pending',
+  0,
+  'USD',
+  0,
+  'coming_soon'
+),
+(
+  'Host Venue Listing - Houston',
+  'NRG Stadium',
+  'Houston, USA',
+  'June-July 2026',
+  'Official inventory pending',
+  0,
+  'USD',
+  0,
+  'coming_soon'
+),
+(
+  'Host Venue Listing - Dallas',
+  'AT&T Stadium',
+  'Dallas, USA',
+  'June-July 2026',
+  'Official inventory pending',
+  0,
+  'USD',
+  0,
+  'coming_soon'
+),
+(
+  'Host Venue Listing - Kansas City',
+  'Arrowhead Stadium',
+  'Kansas City, USA',
+  'June-July 2026',
+  'Official inventory pending',
+  0,
+  'USD',
+  0,
+  'coming_soon'
+),
+(
+  'Host Venue Listing - Atlanta',
+  'Mercedes-Benz Stadium',
+  'Atlanta, USA',
+  'June-July 2026',
+  'Official inventory pending',
+  0,
+  'USD',
+  0,
+  'coming_soon'
+),
+(
+  'Host Venue Listing - Miami',
+  'Hard Rock Stadium',
+  'Miami, USA',
+  'June-July 2026',
+  'Official inventory pending',
+  0,
+  'USD',
+  0,
+  'coming_soon'
+),
+(
+  'Host Venue Listing - Boston',
+  'Gillette Stadium',
+  'Boston, USA',
+  'June-July 2026',
+  'Official inventory pending',
+  0,
+  'USD',
+  0,
+  'coming_soon'
+),
+(
+  'Host Venue Listing - Philadelphia',
+  'Lincoln Financial Field',
+  'Philadelphia, USA',
+  'June-July 2026',
+  'Official inventory pending',
+  0,
+  'USD',
+  0,
+  'coming_soon'
+),
+(
+  'Host Venue Listing - New York/New Jersey',
+  'MetLife Stadium',
+  'New York/New Jersey, USA',
+  'June-July 2026',
+  'Official inventory pending',
+  0,
+  'USD',
+  0,
+  'coming_soon'
+),
+(
+  'Final - New York/New Jersey',
   'MetLife Stadium',
   'New York/New Jersey, USA',
   'July 19, 2026',
-  'Hospitality',
-  1250,
+  'Official inventory pending',
+  0,
   'USD',
-  4,
-  'available'
+  0,
+  'coming_soon'
+),
+(
+  'Host Venue Listing - Monterrey',
+  'Estadio BBVA',
+  'Monterrey, Mexico',
+  'June-July 2026',
+  'Official inventory pending',
+  0,
+  'USD',
+  0,
+  'coming_soon'
 );
