@@ -58,14 +58,15 @@
       <input name="quantity" type="number" min="1" value="1" required />
 
       <select name="payment">
+        <option value="paystack_card">Card / mobile money via Paystack</option>
         <option value="manual_mpesa">M-Pesa Manual Payment</option>
         <option value="bank_transfer">Bank Transfer</option>
-        <option value="card_coming_soon">Card Payment Coming Soon</option>
       </select>
 
       <button type="submit">Submit Order</button>
     </form>
 
+    <p class="small-note">Paystack is enabled with a public-key placeholder in app.js. Add your own public key before live testing.</p>
     <p id="orderMessage"></p>
   </section>
 
