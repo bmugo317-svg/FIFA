@@ -3,55 +3,114 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CupRadar Tickets</title>
+  <title>CupRadar Tickets | World Cup 2026 Marketplace</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="hero">
-    <nav>
-      <h2>CupRadar Tickets</h2>
+  <header class="hero" id="home">
+    <nav class="navbar">
+      <a class="brand" href="#home">
+        <span class="brand-ball">⚽</span>
+        <span>CupRadar <strong>2026</strong></span>
+      </a>
       <div class="nav-links">
-        <a href="#auth">Login</a>
+        <a href="#matches">Matches</a>
         <a href="#tickets">Tickets</a>
+        <a href="#auth">Login</a>
         <a href="#checkout">Checkout</a>
         <a href="#admin">Admin</a>
       </div>
     </nav>
 
-    <div class="hero-content">
-      <p class="badge">Independent marketplace MVP</p>
-      <h1>Buy World Cup 2026 Tickets</h1>
-      <p>Browse available World Cup 2026 ticket listings and reserve your seats through a real Supabase database.</p>
-      <a class="btn" href="#tickets">Browse Tickets</a>
-      <p class="small-note">Not affiliated with FIFA unless clearly stated. Follow official ticket transfer rules.</p>
+    <div class="hero-grid">
+      <div class="hero-content">
+        <p class="badge">World Cup 2026 ticket marketplace</p>
+        <h1>Follow the road to 2026. Buy verified match tickets.</h1>
+        <p class="hero-copy">Browse match listings across USA, Canada, and Mexico. Select your city, reserve your ticket, and checkout securely through Paystack or manual payment.</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#tickets">Browse Tickets</a>
+          <a class="btn ghost" href="#matches">View Matches</a>
+        </div>
+        <p class="small-note">Independent marketplace. Not affiliated with FIFA unless clearly stated. Use only verified inventory and follow official transfer rules.</p>
+      </div>
+
+      <div class="stadium-card">
+        <div class="stadium-lights"></div>
+        <div class="pitch">
+          <div class="pitch-line"></div>
+          <div class="center-circle"></div>
+          <div class="goal goal-left"></div>
+          <div class="goal goal-right"></div>
+          <div class="ball">⚽</div>
+        </div>
+        <div class="final-card">
+          <span class="live-pill">Featured</span>
+          <h2>Final</h2>
+          <p>MetLife Stadium · New York/New Jersey</p>
+          <strong>July 19, 2026</strong>
+        </div>
+      </div>
     </div>
   </header>
 
-  <section id="auth">
-    <h2>Login / Sign Up</h2>
+  <section class="stats-strip">
+    <div><strong>3</strong><span>Host countries</span></div>
+    <div><strong>16</strong><span>Host cities</span></div>
+    <div><strong>12</strong><span>Tickets per listing</span></div>
+    <div><strong>2026</strong><span>Tournament year</span></div>
+  </section>
+
+  <section id="matches" class="section dark-section">
+    <div class="section-head">
+      <p class="badge">Match homepage</p>
+      <h2>Featured World Cup 2026 matches</h2>
+      <p>Real host-city listings from your database appear here once tickets load. No official logos used, because lawsuits are not a design system.</p>
+    </div>
+    <div id="homeMatchGrid" class="match-grid">
+      <div class="loading-card">Loading match cards...</div>
+    </div>
+  </section>
+
+  <section id="auth" class="section auth-section">
+    <div class="section-head">
+      <p class="badge">Account</p>
+      <h2>Login / Sign Up</h2>
+    </div>
     <p id="currentUser">Checking login status...</p>
-    <input id="authName" placeholder="Full name for signup" />
-    <input id="authEmail" type="email" placeholder="Email address" />
-    <input id="authPassword" type="password" placeholder="Password" />
+    <div class="form-grid">
+      <input id="authName" placeholder="Full name for signup" />
+      <input id="authEmail" type="email" placeholder="Email address" />
+      <input id="authPassword" type="password" placeholder="Password" />
+    </div>
     <div class="button-row">
       <button id="signupBtn" type="button">Sign Up</button>
       <button id="loginBtn" type="button">Login</button>
-      <button id="logoutBtn" type="button">Logout</button>
+      <button id="logoutBtn" type="button" class="secondary-btn">Logout</button>
     </div>
     <p id="authMessage"></p>
   </section>
 
-  <section id="tickets">
-    <h2>Available Tickets</h2>
-    <input id="searchInput" placeholder="Search by match, city, or stadium..." />
-    <div id="ticketList"></div>
+  <section id="tickets" class="section">
+    <div class="section-head with-search">
+      <div>
+        <p class="badge">Marketplace</p>
+        <h2>Available Tickets</h2>
+        <p>Search by match, city, stadium, category, or price tier.</p>
+      </div>
+      <input id="searchInput" placeholder="Search by match, city, or stadium..." />
+    </div>
+    <div id="ticketList" class="ticket-grid"></div>
   </section>
 
-  <section id="checkout">
-    <h2>Checkout</h2>
-    <p id="selectedTicket">No ticket selected yet.</p>
+  <section id="checkout" class="section checkout-section">
+    <div>
+      <p class="badge">Checkout</p>
+      <h2>Reserve your seat</h2>
+      <p id="selectedTicket" class="selected-ticket">No ticket selected yet.</p>
+      <p class="small-note">Paystack is enabled. Server verification is handled through Netlify functions.</p>
+    </div>
 
-    <form id="checkoutForm">
+    <form id="checkoutForm" class="checkout-form">
       <input name="name" placeholder="Full Name" required />
       <input name="email" type="email" placeholder="Email Address" required />
       <input name="phone" placeholder="Phone Number" required />
@@ -63,18 +122,19 @@
         <option value="bank_transfer">Bank Transfer</option>
       </select>
 
-      <button type="submit">Submit Order</button>
+      <button type="submit" class="full-btn">Submit Order</button>
+      <p id="orderMessage"></p>
     </form>
-
-    <p class="small-note">Paystack is enabled with a public-key placeholder in app.js. Add your own public key before live testing.</p>
-    <p id="orderMessage"></p>
   </section>
 
-  <section id="admin">
-    <h2>Admin: Add Ticket</h2>
-    <p id="adminStatus">Login as an admin to manage listings.</p>
+  <section id="admin" class="section admin-section">
+    <div class="section-head">
+      <p class="badge">Admin</p>
+      <h2>Add ticket listing</h2>
+      <p id="adminStatus">Login as an admin to manage listings.</p>
+    </div>
 
-    <form id="adminForm">
+    <form id="adminForm" class="admin-form">
       <input name="match" placeholder="Match name" required />
       <input name="venue" placeholder="Venue" required />
       <input name="city" placeholder="City" required />
@@ -82,18 +142,22 @@
       <input name="category" placeholder="Category" required />
       <input name="price" type="number" placeholder="Price USD" required />
       <input name="available" type="number" placeholder="Available quantity" required />
-      <button type="submit">Add Ticket</button>
+      <button type="submit" class="full-btn">Add Ticket</button>
     </form>
   </section>
 
-  <section>
-    <h2>Recent Orders</h2>
-    <p>Buyers see their own orders. Admins can see all orders.</p>
-    <div id="ordersList"></div>
+  <section class="section orders-section">
+    <div class="section-head">
+      <p class="badge">Orders</p>
+      <h2>Recent Orders</h2>
+      <p>Buyers see their own orders. Admins can see all orders.</p>
+    </div>
+    <div id="ordersList" class="orders-list"></div>
   </section>
 
   <footer>
-    <p>CupRadar is an independent ticket marketplace and is not affiliated with FIFA unless clearly stated.</p>
+    <div class="footer-brand">⚽ CupRadar 2026</div>
+    <p>Independent ticket marketplace. Not affiliated with FIFA unless clearly stated.</p>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
