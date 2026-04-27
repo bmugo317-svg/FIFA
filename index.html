@@ -10,16 +10,36 @@
   <header class="hero">
     <nav>
       <h2>CupRadar Tickets</h2>
-      <a href="#tickets">Tickets</a>
-      <a href="#checkout">Checkout</a>
+      <div class="nav-links">
+        <a href="#auth">Login</a>
+        <a href="#tickets">Tickets</a>
+        <a href="#checkout">Checkout</a>
+        <a href="#admin">Admin</a>
+      </div>
     </nav>
 
     <div class="hero-content">
+      <p class="badge">Independent marketplace MVP</p>
       <h1>Buy World Cup 2026 Tickets</h1>
-      <p>Browse available World Cup 2026 ticket listings and reserve your seats.</p>
+      <p>Browse available World Cup 2026 ticket listings and reserve your seats through a real Supabase database.</p>
       <a class="btn" href="#tickets">Browse Tickets</a>
+      <p class="small-note">Not affiliated with FIFA unless clearly stated. Follow official ticket transfer rules.</p>
     </div>
   </header>
+
+  <section id="auth">
+    <h2>Login / Sign Up</h2>
+    <p id="currentUser">Checking login status...</p>
+    <input id="authName" placeholder="Full name for signup" />
+    <input id="authEmail" type="email" placeholder="Email address" />
+    <input id="authPassword" type="password" placeholder="Password" />
+    <div class="button-row">
+      <button id="signupBtn" type="button">Sign Up</button>
+      <button id="loginBtn" type="button">Login</button>
+      <button id="logoutBtn" type="button">Logout</button>
+    </div>
+    <p id="authMessage"></p>
+  </section>
 
   <section id="tickets">
     <h2>Available Tickets</h2>
@@ -38,9 +58,9 @@
       <input name="quantity" type="number" min="1" value="1" required />
 
       <select name="payment">
-        <option>M-Pesa Manual Payment</option>
-        <option>Bank Transfer</option>
-        <option>Card Payment Coming Soon</option>
+        <option value="manual_mpesa">M-Pesa Manual Payment</option>
+        <option value="bank_transfer">Bank Transfer</option>
+        <option value="card_coming_soon">Card Payment Coming Soon</option>
       </select>
 
       <button type="submit">Submit Order</button>
@@ -51,6 +71,7 @@
 
   <section id="admin">
     <h2>Admin: Add Ticket</h2>
+    <p id="adminStatus">Login as an admin to manage listings.</p>
 
     <form id="adminForm">
       <input name="match" placeholder="Match name" required />
@@ -66,6 +87,7 @@
 
   <section>
     <h2>Recent Orders</h2>
+    <p>Buyers see their own orders. Admins can see all orders.</p>
     <div id="ordersList"></div>
   </section>
 
@@ -73,6 +95,7 @@
     <p>CupRadar is an independent ticket marketplace and is not affiliated with FIFA unless clearly stated.</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
 </body>
 </html>
