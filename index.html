@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CupRadar Tickets</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <nav>
+      <h2>CupRadar Tickets</h2>
+      <a href="#tickets">Tickets</a>
+      <a href="#checkout">Checkout</a>
+    </nav>
+
+    <div class="hero-content">
+      <h1>Buy World Cup 2026 Tickets</h1>
+      <p>Browse available World Cup 2026 ticket listings and reserve your seats.</p>
+      <a class="btn" href="#tickets">Browse Tickets</a>
+    </div>
+  </header>
+
+  <section id="tickets">
+    <h2>Available Tickets</h2>
+    <input id="searchInput" placeholder="Search by match, city, or stadium..." />
+    <div id="ticketList"></div>
+  </section>
+
+  <section id="checkout">
+    <h2>Checkout</h2>
+    <p id="selectedTicket">No ticket selected yet.</p>
+
+    <form id="checkoutForm">
+      <input name="name" placeholder="Full Name" required />
+      <input name="email" type="email" placeholder="Email Address" required />
+      <input name="phone" placeholder="Phone Number" required />
+      <input name="quantity" type="number" min="1" value="1" required />
+
+      <select name="payment">
+        <option>M-Pesa Manual Payment</option>
+        <option>Bank Transfer</option>
+        <option>Card Payment Coming Soon</option>
+      </select>
+
+      <button type="submit">Submit Order</button>
+    </form>
+
+    <p id="orderMessage"></p>
+  </section>
+
+  <section id="admin">
+    <h2>Admin: Add Ticket</h2>
+
+    <form id="adminForm">
+      <input name="match" placeholder="Match name" required />
+      <input name="venue" placeholder="Venue" required />
+      <input name="city" placeholder="City" required />
+      <input name="date" placeholder="Date" required />
+      <input name="category" placeholder="Category" required />
+      <input name="price" type="number" placeholder="Price USD" required />
+      <input name="available" type="number" placeholder="Available quantity" required />
+      <button type="submit">Add Ticket</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Recent Orders</h2>
+    <div id="ordersList"></div>
+  </section>
+
+  <footer>
+    <p>CupRadar is an independent ticket marketplace and is not affiliated with FIFA unless clearly stated.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
