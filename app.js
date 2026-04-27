@@ -1,5 +1,6 @@
 const SUPABASE_URL = "https://gawinrzoymblvmkkcmia.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdhd2lucnpveW1ibHZta2tjbWlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNTkyMzYsImV4cCI6MjA5MjgzNTIzNn0.6KgGOqUGkrD7-1XCCmLLQoKT2maleTGf54DTwWWuViI";
+const PAYSTACK_PUBLIC_KEY = "pk_test_142f30c287a55f3ba2fb3e41188d7c62ecf44b5a";
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -19,7 +20,6 @@ const ordersList = document.getElementById("ordersList");
 const authMessage = document.getElementById("authMessage");
 const currentUserBox = document.getElementById("currentUser");
 const adminStatus = document.getElementById("adminStatus");
-
 const signupBtn = document.getElementById("signupBtn");
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
@@ -27,6 +27,46 @@ const logoutBtn = document.getElementById("logoutBtn");
 function setMessage(element, message, isError = false) {
   element.textContent = message;
   element.style.color = isError ? "#b91c1c" : "#0f766e";
+}
+
+function loadPaystackScript() {
+  return new Promise((resolve, reject) => {
+    if (window.PaystackPop) return resolve();
+    const script = document.createElement("script");
+    script.src = "https://" + "js.paystack.co" + "/v1/inline.js";
+    script.onload = resolve;
+    script.onerror = () => reject(new Error("Could not load Paystack checkout."));
+    document.body.appendChild(script);
+  });
+}
+
+async function startPaystackPayment({ email, amount, metadata, onSuccess, onClose }) {
+  if (!PAYSTACK_PUBLIC_KEY) {
+    setMessage(orderMessage, "Paystack public key missing.", true);
+    return;
+  }
+
+  try {
+    await loadPaystackScript();
+  } catch (error) {
+    setMessage(orderMessage, error.message, true);
+    return;
+  }
+
+  const handler = window.PaystackPop.setup({
+    key: PAYSTACK_PUBLIC_KEY,
+    email,
+    amount: Math.round(amount * 100),
+    currency: "KES",
+    ref: "CR-" + Date.now(),
+    metadata,
+    callback: response => onSuccess(response.reference),
+    onClose: () => {
+      if (onClose) onClose();
+    }
+  });
+
+  handler.openIframe();
 }
 
 async function refreshSession() {
@@ -44,11 +84,7 @@ async function refreshSession() {
 
   currentUserBox.textContent = `Logged in as ${currentUser.email}`;
 
-  const { data: profile, error } = await db
-    .from("profiles")
-    .select("*")
-    .eq("id", currentUser.id)
-    .single();
+  const { data: profile, error } = await db.from("profiles").select("*").eq("id", currentUser.id).single();
 
   if (error) {
     currentProfile = null;
@@ -83,9 +119,7 @@ async function signUp() {
   const { error } = await db.auth.signUp({
     email,
     password,
-    options: {
-      data: { full_name: fullName }
-    }
+    options: { data: { full_name: fullName } }
   });
 
   if (error) {
@@ -126,11 +160,7 @@ async function logout() {
 async function loadTickets() {
   ticketList.innerHTML = "<p>Loading tickets...</p>";
 
-  const { data, error } = await db
-    .from("tickets")
-    .select("*")
-    .eq("status", "available")
-    .order("created_at", { ascending: false });
+  const { data, error } = await db.from("tickets").select("*").eq("status", "available").order("created_at", { ascending: false });
 
   if (error) {
     console.error(error);
@@ -153,7 +183,6 @@ function renderTickets(list = tickets) {
   list.forEach(ticket => {
     const card = document.createElement("div");
     card.className = "ticket-card";
-
     const dateText = ticket.match_date || ticket.date || "Date TBA";
     const currency = ticket.currency || "USD";
 
@@ -167,34 +196,29 @@ function renderTickets(list = tickets) {
       <p class="price">${currency} ${ticket.price}</p>
       <button onclick="selectTicket('${ticket.id}')">Buy Ticket</button>
     `;
-
     ticketList.appendChild(card);
   });
 }
 
 function selectTicket(id) {
   selectedTicket = tickets.find(ticket => String(ticket.id) === String(id));
-
   if (!selectedTicket) return;
 
   selectedTicketBox.innerHTML = `
     Selected: <strong>${selectedTicket.match}</strong><br>
     ${selectedTicket.city} · ${selectedTicket.category} · ${selectedTicket.currency || "USD"} ${selectedTicket.price}
   `;
-
   window.location.hash = "checkout";
 }
 
 searchInput.addEventListener("input", () => {
   const value = searchInput.value.toLowerCase();
-
   const filtered = tickets.filter(ticket =>
     String(ticket.match || "").toLowerCase().includes(value) ||
     String(ticket.venue || "").toLowerCase().includes(value) ||
     String(ticket.city || "").toLowerCase().includes(value) ||
     String(ticket.category || "").toLowerCase().includes(value)
   );
-
   renderTickets(filtered);
 });
 
@@ -216,6 +240,7 @@ checkoutForm.addEventListener("submit", async event => {
 
   const formData = new FormData(checkoutForm);
   const quantity = Number(formData.get("quantity"));
+  const paymentMethod = formData.get("payment");
 
   if (quantity > selectedTicket.available) {
     setMessage(orderMessage, "Not enough tickets available.", true);
@@ -224,35 +249,71 @@ checkoutForm.addEventListener("submit", async event => {
 
   const total = quantity * Number(selectedTicket.price);
 
-  const { error } = await db.from("orders").insert({
-    user_id: currentUser.id,
-    ticket_id: selectedTicket.id,
-    buyer_name: formData.get("name"),
-    buyer_email: formData.get("email"),
-    buyer_phone: formData.get("phone"),
-    quantity,
-    total,
-    payment_provider: formData.get("payment"),
-    payment_status: "pending",
-    order_status: "pending_payment"
-  });
+  const createOrder = async ({ paymentStatus, orderStatus, paymentReference }) => {
+    const { error } = await db.from("orders").insert({
+      user_id: currentUser.id,
+      ticket_id: selectedTicket.id,
+      buyer_name: formData.get("name"),
+      buyer_email: formData.get("email"),
+      buyer_phone: formData.get("phone"),
+      quantity,
+      total,
+      payment_provider: paymentMethod,
+      payment_reference: paymentReference || null,
+      payment_status: paymentStatus,
+      order_status: orderStatus
+    });
 
-  if (error) {
-    console.error(error);
-    setMessage(orderMessage, error.message, true);
+    if (error) {
+      console.error(error);
+      setMessage(orderMessage, error.message, true);
+      return false;
+    }
+
+    checkoutForm.reset();
+    selectedTicket = null;
+    selectedTicketBox.textContent = "No ticket selected yet.";
+    await loadOrders();
+    return true;
+  };
+
+  if (paymentMethod === "paystack_card") {
+    setMessage(orderMessage, "Opening Paystack checkout...");
+
+    await startPaystackPayment({
+      email: formData.get("email"),
+      amount: total,
+      metadata: {
+        buyer_name: formData.get("name"),
+        buyer_phone: formData.get("phone"),
+        ticket_id: selectedTicket.id,
+        ticket_match: selectedTicket.match,
+        quantity
+      },
+      onSuccess: async reference => {
+        const saved = await createOrder({
+          paymentStatus: "paid_unverified",
+          orderStatus: "payment_received_pending_verification",
+          paymentReference: reference
+        });
+        if (saved) setMessage(orderMessage, `Payment received. Reference: ${reference}. Await admin verification.`);
+      },
+      onClose: () => setMessage(orderMessage, "Payment window closed before completion.", true)
+    });
     return;
   }
 
-  setMessage(orderMessage, "Order submitted. Await payment confirmation.");
-  checkoutForm.reset();
-  selectedTicket = null;
-  selectedTicketBox.textContent = "No ticket selected yet.";
-  await loadOrders();
+  const saved = await createOrder({
+    paymentStatus: "pending",
+    orderStatus: "pending_payment",
+    paymentReference: null
+  });
+
+  if (saved) setMessage(orderMessage, "Order submitted. Await manual payment confirmation.");
 });
 
 adminForm.addEventListener("submit", async event => {
   event.preventDefault();
-
   await refreshSession();
 
   if (!currentProfile || currentProfile.role !== "admin") {
@@ -261,7 +322,6 @@ adminForm.addEventListener("submit", async event => {
   }
 
   const formData = new FormData(adminForm);
-
   const { error } = await db.from("tickets").insert({
     match: formData.get("match"),
     venue: formData.get("venue"),
@@ -292,10 +352,7 @@ async function loadOrders() {
   }
 
   let query = db.from("orders").select("*").order("created_at", { ascending: false });
-
-  if (!currentProfile || currentProfile.role !== "admin") {
-    query = query.eq("user_id", currentUser.id);
-  }
+  if (!currentProfile || currentProfile.role !== "admin") query = query.eq("user_id", currentUser.id);
 
   const { data, error } = await query;
 
@@ -320,7 +377,6 @@ function renderOrders(list = orders) {
   list.forEach(order => {
     const card = document.createElement("div");
     card.className = "order-card";
-
     card.innerHTML = `
       <h3>${order.id}</h3>
       <p><strong>Buyer:</strong> ${order.buyer_name}</p>
@@ -328,10 +384,10 @@ function renderOrders(list = orders) {
       <p><strong>Phone:</strong> ${order.buyer_phone}</p>
       <p><strong>Quantity:</strong> ${order.quantity}</p>
       <p><strong>Total:</strong> ${order.total}</p>
+      <p><strong>Payment Reference:</strong> ${order.payment_reference || "None"}</p>
       <p><strong>Payment:</strong> ${order.payment_status}</p>
       <p><strong>Status:</strong> ${order.order_status}</p>
     `;
-
     ordersList.appendChild(card);
   });
 }
