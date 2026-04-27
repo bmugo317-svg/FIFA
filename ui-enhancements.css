@@ -1,0 +1,162 @@
+.trust-badges {
+  max-width: 1120px;
+  margin: 18px auto 30px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  padding: 0 20px;
+}
+
+.trust-badges div {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 12px 30px rgba(7,23,47,0.07);
+}
+
+.trust-badges span {
+  font-size: 24px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.trust-badges strong {
+  display: block;
+  color: #07172f;
+  margin-bottom: 4px;
+}
+
+.trust-badges small {
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.total-preview {
+  padding: 18px;
+  margin: 6px 0 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 18px;
+  color: #1d4ed8;
+  font-weight: 800;
+}
+
+.sold-out-card {
+  opacity: 0.62;
+  filter: grayscale(0.4);
+}
+
+.sold-out-btn {
+  background: #94a3b8 !important;
+  color: white !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  background: #ecfdf5;
+  color: #047857;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+details {
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 16px;
+  background: #f8fafc;
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 950;
+  color: #07172f;
+}
+
+details p {
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.footer-links {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: #0f766e;
+  text-decoration: none;
+  font-weight: 900;
+}
+
+.mini-link {
+  display: inline-flex;
+  margin-top: 8px;
+  color: #a3e635;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.mobile-cta {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 50;
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(7,23,47,0.9);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  box-shadow: 0 18px 60px rgba(0,0,0,0.3);
+}
+
+.mobile-cta a {
+  text-align: center;
+  padding: 12px;
+  border-radius: 12px;
+  background: #a3e635;
+  color: #04111f;
+  font-weight: 950;
+  text-decoration: none;
+}
+
+.mobile-cta a:last-child {
+  background: white;
+}
+
+@media (max-width: 900px) {
+  .trust-badges {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .faq-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-cta {
+    display: grid;
+  }
+}
+
+@media (max-width: 560px) {
+  .trust-badges {
+    grid-template-columns: 1fr;
+    margin-top: 18px;
+  }
+}
