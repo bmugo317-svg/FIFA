@@ -1,39 +1,13 @@
-const defaultTickets = [
-  {
-    id: 1,
-    match: "Final - Winner SF1 vs Winner SF2",
-    venue: "MetLife Stadium",
-    city: "New York/New Jersey",
-    date: "July 19, 2026",
-    category: "Category 2",
-    price: 450,
-    available: 8
-  },
-  {
-    id: 2,
-    match: "Semi Final",
-    venue: "AT&T Stadium",
-    city: "Dallas",
-    date: "July 14, 2026",
-    category: "Category 1",
-    price: 320,
-    available: 12
-  },
-  {
-    id: 3,
-    match: "Group Stage",
-    venue: "BMO Field",
-    city: "Toronto",
-    date: "June 12, 2026",
-    category: "Category 3",
-    price: 120,
-    available: 20
-  }
-];
+const SUPABASE_URL = "https://gawinrzoymblvmkkcmia.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdhd2lucnpveW1ibHZta2tjbWlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNTkyMzYsImV4cCI6MjA5MjgzNTIzNn0.6KgGOqUGkrD7-1XCCmLLQoKT2maleTGf54DTwWWuViI";
 
-let tickets = JSON.parse(localStorage.getItem("tickets")) || defaultTickets;
-let orders = JSON.parse(localStorage.getItem("orders")) || [];
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let tickets = [];
+let orders = [];
 let selectedTicket = null;
+let currentUser = null;
+let currentProfile = null;
 
 const ticketList = document.getElementById("ticketList");
 const searchInput = document.getElementById("searchInput");
@@ -42,20 +16,137 @@ const checkoutForm = document.getElementById("checkoutForm");
 const orderMessage = document.getElementById("orderMessage");
 const adminForm = document.getElementById("adminForm");
 const ordersList = document.getElementById("ordersList");
+const authMessage = document.getElementById("authMessage");
+const currentUserBox = document.getElementById("currentUser");
+const adminStatus = document.getElementById("adminStatus");
 
-function saveTickets() {
-  localStorage.setItem("tickets", JSON.stringify(tickets));
+const signupBtn = document.getElementById("signupBtn");
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+
+function setMessage(element, message, isError = false) {
+  element.textContent = message;
+  element.style.color = isError ? "#b91c1c" : "#0f766e";
 }
 
-function saveOrders() {
-  localStorage.setItem("orders", JSON.stringify(orders));
+async function refreshSession() {
+  const { data } = await db.auth.getUser();
+  currentUser = data.user || null;
+
+  if (!currentUser) {
+    currentProfile = null;
+    currentUserBox.textContent = "Not logged in.";
+    adminStatus.textContent = "Login as an admin to manage listings.";
+    adminForm.style.display = "none";
+    renderOrders([]);
+    return;
+  }
+
+  currentUserBox.textContent = `Logged in as ${currentUser.email}`;
+
+  const { data: profile, error } = await db
+    .from("profiles")
+    .select("*")
+    .eq("id", currentUser.id)
+    .single();
+
+  if (error) {
+    currentProfile = null;
+    adminStatus.textContent = "Profile not found. Create/repair your profile in Supabase.";
+    adminForm.style.display = "none";
+    return;
+  }
+
+  currentProfile = profile;
+
+  if (currentProfile.role === "admin") {
+    adminStatus.textContent = "Admin access active.";
+    adminForm.style.display = "block";
+  } else {
+    adminStatus.textContent = "Buyer account. Admin tools hidden.";
+    adminForm.style.display = "none";
+  }
+
+  await loadOrders();
+}
+
+async function signUp() {
+  const fullName = document.getElementById("authName").value.trim();
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+
+  if (!email || !password) {
+    setMessage(authMessage, "Enter email and password.", true);
+    return;
+  }
+
+  const { error } = await db.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: fullName }
+    }
+  });
+
+  if (error) {
+    setMessage(authMessage, error.message, true);
+    return;
+  }
+
+  setMessage(authMessage, "Signup successful. Check your email if confirmation is enabled.");
+  await refreshSession();
+}
+
+async function login() {
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+
+  if (!email || !password) {
+    setMessage(authMessage, "Enter email and password.", true);
+    return;
+  }
+
+  const { error } = await db.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    setMessage(authMessage, error.message, true);
+    return;
+  }
+
+  setMessage(authMessage, "Logged in successfully.");
+  await refreshSession();
+}
+
+async function logout() {
+  await db.auth.signOut();
+  setMessage(authMessage, "Logged out.");
+  await refreshSession();
+}
+
+async function loadTickets() {
+  ticketList.innerHTML = "<p>Loading tickets...</p>";
+
+  const { data, error } = await db
+    .from("tickets")
+    .select("*")
+    .eq("status", "available")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    ticketList.innerHTML = `<p>Could not load tickets: ${error.message}</p>`;
+    return;
+  }
+
+  tickets = data || [];
+  renderTickets(tickets);
 }
 
 function renderTickets(list = tickets) {
   ticketList.innerHTML = "";
 
-  if (list.length === 0) {
-    ticketList.innerHTML = "<p>No tickets found.</p>";
+  if (!list.length) {
+    ticketList.innerHTML = "<p>No tickets found. Add tickets as admin or seed your Supabase table.</p>";
     return;
   }
 
@@ -63,15 +154,18 @@ function renderTickets(list = tickets) {
     const card = document.createElement("div");
     card.className = "ticket-card";
 
+    const dateText = ticket.match_date || ticket.date || "Date TBA";
+    const currency = ticket.currency || "USD";
+
     card.innerHTML = `
       <h3>${ticket.match}</h3>
       <p><strong>Venue:</strong> ${ticket.venue}</p>
       <p><strong>City:</strong> ${ticket.city}</p>
-      <p><strong>Date:</strong> ${ticket.date}</p>
+      <p><strong>Date:</strong> ${dateText}</p>
       <p><strong>Category:</strong> ${ticket.category}</p>
       <p><strong>Available:</strong> ${ticket.available}</p>
-      <p class="price">$${ticket.price}</p>
-      <button onclick="selectTicket(${ticket.id})">Buy Ticket</button>
+      <p class="price">${currency} ${ticket.price}</p>
+      <button onclick="selectTicket('${ticket.id}')">Buy Ticket</button>
     `;
 
     ticketList.appendChild(card);
@@ -79,13 +173,13 @@ function renderTickets(list = tickets) {
 }
 
 function selectTicket(id) {
-  selectedTicket = tickets.find(ticket => ticket.id === id);
+  selectedTicket = tickets.find(ticket => String(ticket.id) === String(id));
 
   if (!selectedTicket) return;
 
   selectedTicketBox.innerHTML = `
     Selected: <strong>${selectedTicket.match}</strong><br>
-    ${selectedTicket.city} · ${selectedTicket.category} · $${selectedTicket.price}
+    ${selectedTicket.city} · ${selectedTicket.category} · ${selectedTicket.currency || "USD"} ${selectedTicket.price}
   `;
 
   window.location.hash = "checkout";
@@ -95,20 +189,28 @@ searchInput.addEventListener("input", () => {
   const value = searchInput.value.toLowerCase();
 
   const filtered = tickets.filter(ticket =>
-    ticket.match.toLowerCase().includes(value) ||
-    ticket.venue.toLowerCase().includes(value) ||
-    ticket.city.toLowerCase().includes(value) ||
-    ticket.category.toLowerCase().includes(value)
+    String(ticket.match || "").toLowerCase().includes(value) ||
+    String(ticket.venue || "").toLowerCase().includes(value) ||
+    String(ticket.city || "").toLowerCase().includes(value) ||
+    String(ticket.category || "").toLowerCase().includes(value)
   );
 
   renderTickets(filtered);
 });
 
-checkoutForm.addEventListener("submit", event => {
+checkoutForm.addEventListener("submit", async event => {
   event.preventDefault();
 
   if (!selectedTicket) {
-    orderMessage.textContent = "Please select a ticket first.";
+    setMessage(orderMessage, "Please select a ticket first.", true);
+    return;
+  }
+
+  await refreshSession();
+
+  if (!currentUser) {
+    setMessage(orderMessage, "Please login before ordering.", true);
+    window.location.hash = "auth";
     return;
   }
 
@@ -116,85 +218,133 @@ checkoutForm.addEventListener("submit", event => {
   const quantity = Number(formData.get("quantity"));
 
   if (quantity > selectedTicket.available) {
-    orderMessage.textContent = "Not enough tickets available.";
+    setMessage(orderMessage, "Not enough tickets available.", true);
     return;
   }
 
-  const order = {
-    id: "CR-" + Date.now(),
-    ticket: selectedTicket.match,
-    name: formData.get("name"),
-    email: formData.get("email"),
-    phone: formData.get("phone"),
+  const total = quantity * Number(selectedTicket.price);
+
+  const { error } = await db.from("orders").insert({
+    user_id: currentUser.id,
+    ticket_id: selectedTicket.id,
+    buyer_name: formData.get("name"),
+    buyer_email: formData.get("email"),
+    buyer_phone: formData.get("phone"),
     quantity,
-    payment: formData.get("payment"),
-    total: quantity * selectedTicket.price,
-    status: "Pending payment confirmation"
-  };
+    total,
+    payment_provider: formData.get("payment"),
+    payment_status: "pending",
+    order_status: "pending_payment"
+  });
 
-  selectedTicket.available -= quantity;
+  if (error) {
+    console.error(error);
+    setMessage(orderMessage, error.message, true);
+    return;
+  }
 
-  orders.unshift(order);
-  saveTickets();
-  saveOrders();
-
+  setMessage(orderMessage, "Order submitted. Await payment confirmation.");
   checkoutForm.reset();
   selectedTicket = null;
   selectedTicketBox.textContent = "No ticket selected yet.";
-  orderMessage.textContent = `Order submitted. Reference: ${order.id}`;
-
-  renderTickets();
-  renderOrders();
+  await loadOrders();
 });
 
-adminForm.addEventListener("submit", event => {
+adminForm.addEventListener("submit", async event => {
   event.preventDefault();
+
+  await refreshSession();
+
+  if (!currentProfile || currentProfile.role !== "admin") {
+    setMessage(adminStatus, "Access denied. Admin role required.", true);
+    return;
+  }
 
   const formData = new FormData(adminForm);
 
-  const ticket = {
-    id: Date.now(),
+  const { error } = await db.from("tickets").insert({
     match: formData.get("match"),
     venue: formData.get("venue"),
     city: formData.get("city"),
-    date: formData.get("date"),
+    match_date: formData.get("date"),
     category: formData.get("category"),
     price: Number(formData.get("price")),
-    available: Number(formData.get("available"))
-  };
+    currency: "USD",
+    available: Number(formData.get("available")),
+    status: "available"
+  });
 
-  tickets.unshift(ticket);
-  saveTickets();
+  if (error) {
+    console.error(error);
+    setMessage(adminStatus, error.message, true);
+    return;
+  }
+
+  setMessage(adminStatus, "Ticket added successfully.");
   adminForm.reset();
-  renderTickets();
+  await loadTickets();
 });
 
-function renderOrders() {
+async function loadOrders() {
+  if (!currentUser) {
+    renderOrders([]);
+    return;
+  }
+
+  let query = db.from("orders").select("*").order("created_at", { ascending: false });
+
+  if (!currentProfile || currentProfile.role !== "admin") {
+    query = query.eq("user_id", currentUser.id);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error(error);
+    ordersList.innerHTML = `<p>Could not load orders: ${error.message}</p>`;
+    return;
+  }
+
+  orders = data || [];
+  renderOrders(orders);
+}
+
+function renderOrders(list = orders) {
   ordersList.innerHTML = "";
 
-  if (orders.length === 0) {
+  if (!list.length) {
     ordersList.innerHTML = "<p>No orders yet.</p>";
     return;
   }
 
-  orders.forEach(order => {
+  list.forEach(order => {
     const card = document.createElement("div");
     card.className = "order-card";
 
     card.innerHTML = `
       <h3>${order.id}</h3>
-      <p><strong>Buyer:</strong> ${order.name}</p>
-      <p><strong>Email:</strong> ${order.email}</p>
-      <p><strong>Phone:</strong> ${order.phone}</p>
-      <p><strong>Ticket:</strong> ${order.ticket}</p>
+      <p><strong>Buyer:</strong> ${order.buyer_name}</p>
+      <p><strong>Email:</strong> ${order.buyer_email}</p>
+      <p><strong>Phone:</strong> ${order.buyer_phone}</p>
       <p><strong>Quantity:</strong> ${order.quantity}</p>
-      <p><strong>Total:</strong> $${order.total}</p>
-      <p><strong>Status:</strong> ${order.status}</p>
+      <p><strong>Total:</strong> ${order.total}</p>
+      <p><strong>Payment:</strong> ${order.payment_status}</p>
+      <p><strong>Status:</strong> ${order.order_status}</p>
     `;
 
     ordersList.appendChild(card);
   });
 }
 
-renderTickets();
-renderOrders();
+signupBtn.addEventListener("click", signUp);
+loginBtn.addEventListener("click", login);
+logoutBtn.addEventListener("click", logout);
+
+db.auth.onAuthStateChange(async () => {
+  await refreshSession();
+});
+
+(async function init() {
+  await refreshSession();
+  await loadTickets();
+})();
